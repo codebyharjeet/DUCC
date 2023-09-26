@@ -13,6 +13,11 @@ This repository is currently under development. To do a development install, dow
 
 in the repository directory.
 
+This package requires the following:
+  - numpy
+  - matplotlib
+
+
 ### Copyright
 
 Copyright (c) 2023, Harjeet Singh
@@ -22,3 +27,5 @@ Copyright (c) 2023, Harjeet Singh
  
 Project based on the 
 [Computational Molecular Science Python Cookiecutter](https://github.com/molssi/cookiecutter-cms) version 1.1.
+
+
