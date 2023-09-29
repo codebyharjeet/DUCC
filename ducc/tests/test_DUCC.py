@@ -7,9 +7,9 @@ import sys
 
 import pytest
 
-import DUCC
+import ducc
 
 
 def test_DUCC_imported():
     """Sample test, will always pass so long as import statement worked."""
-    assert "DUCC" in sys.modules
+    assert "ducc" in sys.modules
