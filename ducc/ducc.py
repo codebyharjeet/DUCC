@@ -50,6 +50,99 @@ def tprint(tens):
 		print("TODO: implement a printing for a %dD tensor."%(np.ndim(tens)))
 		exit()
 
+def one_body_to_op(one_body_mat,n_orb,n_occ):
+    print(n_orb)
+    one_body_op = of.FermionOperator()
+    for p in range(0,n_occ):
+        for q in range(0,n_occ):
+            # O|O
+            one_body_op += of.FermionOperator(((q,0),(p,1)), -one_body_mat[p,q])
+    for p in range(0,n_occ):
+        for q in range(n_occ,2*n_orb):
+            # O|V
+            one_body_op += of.FermionOperator(((p,1),(q,0)),  one_body_mat[p,q])
+            # V|O
+            one_body_op += of.FermionOperator(((q,1),(p,0)),  one_body_mat[q,p])
+    for p in range(n_occ,2*n_orb):
+        for q in range(n_occ,2*n_orb):
+            # V|V
+            one_body_op += of.FermionOperator(((p,1),(q,0)),  one_body_mat[p,q])
+    return one_body_op 
+
+def two_body_to_op(two_body_tens,n_orb,n_occ):
+	two_body_op = of.FermionOperator()
+	for p in range(0,n_occ):
+		for q in range(0,n_occ):
+			for r in range(0,n_occ):
+				for s in range(0,n_occ):
+					# OO|OO
+					two_body_op += of.FermionOperator(((s,0),(r,0),(p,1),(q,1)),  two_body_tens[p,q,r,s])
+	for p in range(0,n_occ):
+		for q in range(0,n_occ):
+			for r in range(0,n_occ):
+				for s in range(n_occ,2*n_orb):
+					# OO|OV
+					two_body_op += of.FermionOperator(((r,0),(s,0),(p,1),(q,1)), -two_body_tens[p,q,r,s])
+					# OO|VO
+					two_body_op += of.FermionOperator(((r,0),(s,0),(p,1),(q,1)),  two_body_tens[p,q,s,r])
+					# OV|OO
+					two_body_op += of.FermionOperator(((s,1),(q,0),(r,0),(p,1)), -two_body_tens[p,s,r,q])
+					# VO|OO
+					two_body_op += of.FermionOperator(((s,1),(p,0),(r,0),(q,1)),  two_body_tens[s,q,r,p])
+	for p in range(0,n_occ):
+		for q in range(0,n_occ):
+			for r in range(n_occ,2*n_orb):
+				for s in range(n_occ,2*n_orb):
+					# OO|VV
+					two_body_op += of.FermionOperator(((s,0),(r,0),(p,1),(q,1)),  two_body_tens[p,q,r,s])
+					# OV|OV
+					two_body_op += of.FermionOperator(((r,1),(q,0),(s,0),(p,1)),  two_body_tens[p,r,q,s])
+					# VO|OV
+					two_body_op += of.FermionOperator(((r,1),(p,0),(s,0),(q,1)), -two_body_tens[r,q,p,s])
+					# OV|VO
+					two_body_op += of.FermionOperator(((s,1),(q,0),(r,0),(p,1)), -two_body_tens[p,s,r,q])
+					# VO|VO
+					two_body_op += of.FermionOperator(((s,1),(p,0),(r,0),(q,1)),  two_body_tens[s,q,r,p])
+					# VV|OO
+					two_body_op += of.FermionOperator(((r,1),(s,1),(q,0),(p,0)),  two_body_tens[r,s,p,q])
+	for p in range(0,n_occ):
+		for q in range(n_occ,2*n_orb):
+			for r in range(n_occ,2*n_orb):
+				for s in range(n_occ,2*n_orb):
+					# OV|VV
+					two_body_op += of.FermionOperator(((q,1),(s,0),(r,0),(p,1)), -two_body_tens[p,q,r,s])
+					# VO|VV
+					two_body_op += of.FermionOperator(((q,1),(s,0),(r,0),(p,1)),  two_body_tens[q,p,r,s])
+					# VV|OV
+					two_body_op += of.FermionOperator(((r,1),(q,1),(p,0),(s,0)), -two_body_tens[r,q,p,s])
+					# VV|VO
+					two_body_op += of.FermionOperator(((s,1),(q,1),(p,0),(r,0)),  two_body_tens[s,q,r,p])
+	for p in range(n_occ,2*n_orb):
+		for q in range(n_occ,2*n_orb):
+			for r in range(n_occ,2*n_orb):
+				for s in range(n_occ,2*n_orb):
+					# VVVV
+					two_body_op += of.FermionOperator(((p,1),(q,1),(s,0),(r,0)),  two_body_tens[p,q,r,s])
+	return two_body_op
+
+def one_elec_to_op(one_body_mat,n_orb):
+    print(n_orb)
+    one_body_op = of.FermionOperator()
+    for p in range(0,2*n_orb):
+        for q in range(0,2*n_orb):
+            one_body_op += of.FermionOperator(((p,1),(q,0)),  one_body_mat[p,q])
+    return one_body_op 
+
+def two_elec_to_op(two_body_tens,n_orb):
+	two_body_op = of.FermionOperator()
+	for p in range(0,2*n_orb):
+		for q in range(0,2*n_orb):
+			for r in range(0,2*n_orb):
+				for s in range(0,2*n_orb):
+					two_body_op += of.FermionOperator(((p,1),(q,1),(s,0),(r,0)),  two_body_tens[p,r,q,s])
+	return two_body_op
+
+
 comment = """
 def make_f_1(one_elec, config_a, config_b):
     n_orb = self.n_orb
@@ -124,6 +217,25 @@ def get_spin_to_spatial(integral,n_orb):
                         #vmat_spatial[p,q,r,s] = vmat[pa, ra,qb,sb]
         
     return integral_spatial
+
+def get_spatial_to_spin(integral,n_orb):
+    A = np.array([[1,0],[0,0]])
+    B = np.array([[0,0],[0,1]])
+    AA = np.einsum("pq,rs->pqrs",A,A)
+    AB = np.einsum("pq,rs->pqrs",A,B)
+    BA = np.einsum("pq,rs->pqrs",B,A)
+    BB = np.einsum("pq,rs->pqrs",B,B)
+
+    if(np.ndim(integral) == 0):
+        print("It is a constant term.")
+        exit()
+
+    elif(np.ndim(integral) == 2):
+        integral_spin = np.kron(integral,A) + np.kron(integral,B)
+
+    elif(np.ndim(integral) == 4): 
+        integral_spin = np.kron(integral,AA) + np.kron(integral,AB) + np.kron(integral,BA) + np.kron(integral,BB)
+    return integral_spin
 
 
 def get_u(two_elec, config_a, config_b):
@@ -457,6 +569,7 @@ def compute_ducc(fmat,vmat,t1,t2,n_a,n_b,n_occ,n_orb,act_max,compute_three_body=
 
     # Projecting into the active space
     #one_body += proj_tens_to_as(ft1_mat,act_max)
+
     one_body += ft1_mat
     constant += ft1
 
@@ -516,6 +629,7 @@ def compute_ducc(fmat,vmat,t1,t2,n_a,n_b,n_occ,n_orb,act_max,compute_three_body=
     # Projecting into the active space
     #two_body += proj_tens_to_as(ft2_mat_2,act_max)
     #one_body += proj_tens_to_as(ft2_mat_1,act_max)
+
     two_body += ft2_mat_2
     one_body += ft2_mat_1
 
@@ -619,6 +733,7 @@ def compute_ducc(fmat,vmat,t1,t2,n_a,n_b,n_occ,n_orb,act_max,compute_three_body=
     # Projecting into the active space
     #two_body += proj_tens_to_as(wt1_mat_2,act_max)
     #one_body += proj_tens_to_as(wt1_mat_1,act_max)
+
     two_body += wt1_mat_2
     one_body += wt1_mat_1
 
@@ -807,6 +922,7 @@ def compute_ducc(fmat,vmat,t1,t2,n_a,n_b,n_occ,n_orb,act_max,compute_three_body=
     #three_body += proj_tens_to_as(wt2_mat_3,act_max)
     #two_body += proj_tens_to_as(wt2_mat_2,act_max)
     #one_body += proj_tens_to_as(wt2_mat_1,act_max)
+
     two_body += wt2_mat_2
     one_body += wt2_mat_1
     constant += wt2
@@ -854,8 +970,8 @@ def compute_ducc(fmat,vmat,t1,t2,n_a,n_b,n_occ,n_orb,act_max,compute_three_body=
 
     # Projecting into the active space
     #one_body += proj_tens_to_as(ft1t1_mat_1,act_max)
-    one_body += ft1t1_mat_1
-    constant += ft1t1
+    #one_body += 0.5*ft1t1_mat_1
+    #constant += 0.5*ft1t1
 
     # [[F,T2]T1]
     # t_ov = t1 and t_vo = transpose(t1)
@@ -970,9 +1086,9 @@ def compute_ducc(fmat,vmat,t1,t2,n_a,n_b,n_occ,n_orb,act_max,compute_three_body=
     # Projecting into the active space
     #two_body += proj_tens_to_as(ft2t1_mat_2,act_max)
     #one_body += proj_tens_to_as(ft2t1_mat_1,act_max)
-    two_body += ft2t1_mat_2
-    one_body += ft2t1_mat_1
-    constant += ft2t1
+    #two_body += 0.5*ft2t1_mat_2
+    #one_body += 0.5*ft2t1_mat_1
+    #constant += 0.5*ft2t1
 
     # [[F,T1]T2]
     # t_ov = t1 and t_vo = transpose(t1)
@@ -1041,8 +1157,9 @@ def compute_ducc(fmat,vmat,t1,t2,n_a,n_b,n_occ,n_orb,act_max,compute_three_body=
     # Projecting into the active space
     #two_body += proj_tens_to_as(ft1t2_mat_2,act_max)
     #one_body += proj_tens_to_as(ft1t2_mat_1,act_max)
-    two_body += ft1t2_mat_2
-    one_body += ft1t2_mat_1
+
+    #two_body += 0.5*ft1t2_mat_2
+    #one_body += 0.5*ft1t2_mat_1
 
     # [[F,T2]T2]
     # t_oovv = t2 and t_vvoo = transpose(t2)
@@ -1211,9 +1328,10 @@ def compute_ducc(fmat,vmat,t1,t2,n_a,n_b,n_occ,n_orb,act_max,compute_three_body=
     #three_body += proj_tens_to_as(ft2t2_mat_3,act_max)
     #two_body += proj_tens_to_as(ft2t2_mat_2,act_max)
     #one_body += proj_tens_to_as(ft2t2_mat_1,act_max)
-    two_body += ft2t2_mat_2
-    one_body += ft2t2_mat_1
-    constant += ft2t2
+
+    #two_body += 0.5*ft2t2_mat_2
+    #one_body += 0.5*ft2t2_mat_1
+    #constant += 0.5*ft2t2
 
     print("DUCC contractions computed successfully.")
     return constant, one_body, two_body, three_body
@@ -1254,51 +1372,75 @@ if __name__ == "__main__":
     t2_amps = mccsd.t2
     fmat = sq_ham.make_f(range(n_a),range(n_b))
     vmat = sq_ham.make_v()
-    
-    
-    #fmat -= umat
 
 
     t1_amps, t2_amps = get_t_ext(t1_amps,t2_amps,n_a,n_b,act_max)
 
     t1_amps, t2_amps = transform_t_spatial_to_spin(t1_amps, t2_amps, n_a, n_b, n_orb)
 
+    #t1_amps = np.zeros((n_a+n_b,2*n_orb-n_a-n_b))
+    #t2_amps = np.zeros((n_a+n_b,n_a+n_b,2*n_orb-n_a-n_b,2*n_orb-n_a-n_b))
+
     constant, one_body, two_body, three_body = compute_ducc(fmat,vmat,t1_amps,t2_amps,n_a,n_b,n_occ,n_orb,act_max,compute_three_body=False)
 
-    C = mf.mo_coeff
 
-    h  = pyscf.scf.hf.get_hcore(mf.mol)
-    j,k = mf.get_jk()
-    print("j in AO")
-    tprint(k)
-    h = C.T @ h @ C;
-    j = C.T @ j @ C;
-    k = C.T @ k @ C;
-    print("j in MO")
-    tprint(k)
+    #C = mf.mo_coeff
+    #h  = pyscf.scf.hf.get_hcore(mf.mol)
+    #j,k = mf.get_jk()
+    #print("j in AO")
+    #tprint(k)
+    #h = C.T @ h @ C;
+    #j = C.T @ j @ C;
+    #k = C.T @ k @ C;
+    #print("j in MO")
+    #tprint(k)
     #h = h +j-0.5*k
     #j = j[0:act_max,0:act_max]
     #k = k[0:act_max,0:act_max]
-    h1 = mf.mo_coeff.T.dot(mf.get_hcore()).dot(mf.mo_coeff)
-    h2 = pyscf.ao2mo.kernel(mol, C, aosym="s4", compact=False)
-    h2.shape = (n_orb, n_orb, n_orb, n_orb)
-
-    print("shape of h1 and h2",h1.shape,h2.shape)
+    #h1 = mf.mo_coeff.T.dot(mf.get_hcore()).dot(mf.mo_coeff)
+    #h2 = pyscf.ao2mo.kernel(mol, C, aosym="s4", compact=False)
+    #h2.shape = (n_orb, n_orb, n_orb, n_orb)
     #Fao = mf.get_fock()
     #Fmo = C.T @ Fao @ C
     #print("Test 0 = ",np.linalg.norm(Fmo-h))
 
-    #u_tilde = get_u(two_body,range(n_a),range(n_b))
-    #one_body -= u_tilde
+
+    comment = """
+    constant_op = of.FermionOperator('', float(constant))
+
+    one_body_op = normal_ordered(one_body_to_op(one_body,act_max,n_occ))
+
+    two_body_op = normal_ordered(two_body_to_op(two_body,act_max,n_occ))
+
+    a3_ham = constant_op + one_body_op + two_body_op
+
+    print("Energy of A3 Hamiltonian = ", eigenspectrum(a3_ham)[0].real)
+    #print(a3_ham)
+    """
     
-    #umat = sq_ham.make_u(range(n_a),range(n_b))
-    
+    #comment = """
     umat_1 = get_u(two_body,range(n_a),range(n_b))
-    
     one_body -= umat_1
 
     one_elec_test = get_spin_to_spatial(one_body,n_orb)
     two_elec_test = get_spin_to_spatial(two_body,n_orb)
+
+    h_spin = get_spatial_to_spin(one_elec_test,n_orb)
+    g_spin = get_spatial_to_spin(two_elec_test,n_orb)
+
+    h_spin_op = one_elec_to_op(h_spin,act_max)
+    g_spin_op = two_elec_to_op(g_spin,act_max)
+    constant_op = of.FermionOperator('', float(constant))
+
+    ham_op = normal_ordered(constant_op + h_spin_op + 0.5*g_spin_op)
+    ham_op_energy = eigenspectrum(ham_op)[0].real
+    print("Energy of A1 Hamiltonian = ",ham_op_energy)
+    print("Correlation energy = ",ham_op_energy-E_scf)
+    print(ham_op)
+    #"""
+
+
+
 
 
     #print("Test u = ",np.linalg.norm(umat-umat_1))
@@ -1313,8 +1455,10 @@ if __name__ == "__main__":
     #print("Test 1 (get_u) = ",np.linalg.norm(fmat_spatial-h1))
     #print("Test 2 (make_u) = ",np.linalg.norm(fmat_spatial-h1))
 
+    comment = """
     h1 = one_elec_test[0:act_max,0:act_max]
     h2 = two_elec_test[0:act_max,0:act_max,0:act_max,0:act_max]  
+
 
     cisolver = fci.direct_spin1.FCI()
     ecore = constant
@@ -1324,7 +1468,7 @@ if __name__ == "__main__":
     efci_orgnl,ci_orgnl = cisolver.kernel(h1, h2, h1.shape[1], nelec, ecore=ecore,nroots =nroots,verbose=100)
     fci_dim_orgnl = ci_orgnl.shape[0]*ci_orgnl.shape[1]
     print(" FCI:        %12.8f Dim:%6d"%(efci_orgnl,fci_dim_orgnl))
-
+    
 
     #efci, ci = cisolver.kernel(fmat_spatial_act, vmat_spatial_act, fmat_spatial_act.shape[1], nelec, ecore=constant,nroots =nroots,verbose=100)
     #fci_dim = ci.shape[0]*ci.shape[1]
@@ -1332,9 +1476,11 @@ if __name__ == "__main__":
 
     print(" SCF:        %12.8f"%(E_scf))
 
+
     print("Correlation energy = ",efci_orgnl-E_scf)
     #print("Correlation energy 2= ",efci-E_scf)
-
+    """
+ 
     
 
     save_data = False
